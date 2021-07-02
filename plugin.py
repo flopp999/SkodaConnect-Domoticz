@@ -3,7 +3,7 @@
 # Author: flopp999
 #
 """
-<plugin key="SkodaConnect" name="SkodaConnect 0.15" author="flopp999" version="0.15" wikilink="https://github.com/flopp999/SkodaConnect-Domoticz" externallink="https://www.skoda-connect.com">
+<plugin key="SkodaConnect" name="SkodaConnect 0.17" author="flopp999" version="0.17" wikilink="https://github.com/flopp999/SkodaConnect-Domoticz" externallink="https://www.skoda-connect.com">
     <description>
         <h2>Support me with a coffee &<a href="https://www.buymeacoffee.com/flopp999">https://www.buymeacoffee.com/flopp999</a></h2><br/>
         <h2>or use my Tibber link &<a href="https://tibber.com/se/invite/8af85f51">https://tibber.com/se/invite/8af85f51</a></h2><br/>
@@ -64,7 +64,9 @@ logger.addHandler(handler)
 async def main():
     async with ClientSession(headers={'Connection': 'keep-alive'}) as session:
         connection = Connection(session, _plugin.Email, _plugin.Password, False)
+        WriteDebug("===login start===")
         if await connection.doLogin():
+            WriteDebug("===login done===")
             instruments = set()
             for vehicle in connection.vehicles:
                 dashboard = vehicle.dashboard(mutable=True)
@@ -80,6 +82,9 @@ async def main():
             return False
 
         data = await connection.getCharging(vehicle.vin)
+        WriteDebug("===data wait done===")
+
+        Domoticz.Log(str(data))
         for charge,chargevalue in data["charging"].items():
             Domoticz.Log(str(charge))
             Domoticz.Log(str(chargevalue))
@@ -88,6 +93,8 @@ async def main():
             Domoticz.Log(str(plug))
             Domoticz.Log(str(plugvalue))
             UpdateDevice(plug, 0, plugvalue)
+    WriteDebug("===main done===")
+
 
 
 class BasePlugin:
@@ -113,10 +120,12 @@ class BasePlugin:
 
     def onHeartbeat(self):
         Domoticz.Log("HeartBeat")
+        WriteDebug("===heartbeat===")
         self.Count += 1
         if self.Count == 6:
-            asyncio.run(main())
-            self.Count = 0
+            if CheckInternet() == True:
+                asyncio.run(main())
+                self.Count = 0
 
 
 global _plugin
@@ -129,7 +138,6 @@ def onStart():
 
 
 def UpdateDevice(name, nValue, sValue):
-
     if name == "charging":
         ID = 1
         unit = ""
@@ -137,6 +145,14 @@ def UpdateDevice(name, nValue, sValue):
         ID = 2
         unit = "%"
     if name == "chargeMode":
+        Domoticz.Log(sValue)
+
+        if sValue == "MANUAL":
+            sValue = 1
+        elif sValue == "AUTO":
+            sValue = 2
+        else:
+            sValue = -1
         ID = 3
         unit = ""
     if name == "electric_range":
@@ -159,34 +175,46 @@ def UpdateDevice(name, nValue, sValue):
     if name == "lockState":
         name = "charging_cable_locked"
         ID = 7
+        if sValue == "Unlocked":
+            sValue = 0
         if sValue == "Locked":
             sValue = 1
-        if sValue == "Un":
-            sValue = 2
         unit = ""
     if name == "state":
+        if sValue == "ReadyForCharging":
+            sValue = 0
+        if sValue == "Charging":
+            sValue = 1
         ID = 8
         unit = ""
     if name == "remainingToCompleteInSeconds":
         ID = 9
         name = "remainingToCompleteInMinutes"
-        sValue = (sValue/60.0)
+        sValue = sValue/60.0
         unit = "minutes"
     if name == "chargingPowerInWatts":
+        name = "chargingPowerInKiloWatts"
+        sValue = sValue/1000.0
         ID = 10
-        unit = "watts"
+        unit = "kW"
     if name == "chargingRateInKilometersPerHour":
         ID = 11
         unit = "km/h"
     if name == "chargingType":
+        if sValue == "Invalid":
+            sValue = 0
+        if sValue == "Ac":
+            sValue = 1
+        if sValue == "Dc":
+            sValue = 2
         ID = 12
         unit = ""
     if name == "connectionState":
         ID = 13
+        if sValue == "Disconnected":
+            sValue = 0
         if sValue == "Connected":
             sValue = 1
-        if sValue == "DConnected":
-            sValue = 2
         unit = ""
 #
     if name == "dsfgsdfg":
@@ -319,6 +347,7 @@ def UpdateDevice(name, nValue, sValue):
 
 #        else:
         Domoticz.Device(Name=name, Unit=ID, TypeName="Custom", Options={"Custom": "0;"+unit}, Used=Used, Description="ParameterID=\nDesignation=").Create()
+        Devices[ID].Update(nValue, str(sValue), Name=name)
 
 
 def CheckInternet():
