@@ -3,7 +3,7 @@
 # Author: flopp999
 #
 """
-<plugin key="SkodaConnect" name="SkodaConnect 0.19" author="flopp999" version="0.19" wikilink="https://github.com/flopp999/SkodaConnect-Domoticz" externallink="https://www.skoda-connect.com">
+<plugin key="SkodaConnect" name="SkodaConnect 0.20" author="flopp999" version="0.20" wikilink="https://github.com/flopp999/SkodaConnect-Domoticz" externallink="https://www.skoda-connect.com">
     <description>
         <h2>Support me with a coffee &<a href="https://www.buymeacoffee.com/flopp999">https://www.buymeacoffee.com/flopp999</a></h2><br/>
         <h2>or use my Tibber link &<a href="https://tibber.com/se/invite/8af85f51">https://tibber.com/se/invite/8af85f51</a></h2><br/>
@@ -16,7 +16,7 @@
     </description>
     <params>
         <param field="Mode1" label="Email" width="320px" required="true" default="username@domain.com"/>
-        <param field="Mode2" label="Password" width="350px" required="true" default="Password"/>
+        <param field="Mode2" label="Password" password="true" width="350px" required="true" default="Password"/>
         <param field="Mode6" label="Debug to file (SkodaConnect.log)" width="70px">
             <options>
                 <option label="Yes" value="Yes" />
