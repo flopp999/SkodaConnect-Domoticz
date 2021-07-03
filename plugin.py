@@ -3,7 +3,7 @@
 # Author: flopp999
 #
 """
-<plugin key="SkodaConnect" name="SkodaConnect 0.18" author="flopp999" version="0.18" wikilink="https://github.com/flopp999/SkodaConnect-Domoticz" externallink="https://www.skoda-connect.com">
+<plugin key="SkodaConnect" name="SkodaConnect 0.19" author="flopp999" version="0.19" wikilink="https://github.com/flopp999/SkodaConnect-Domoticz" externallink="https://www.skoda-connect.com">
     <description>
         <h2>Support me with a coffee &<a href="https://www.buymeacoffee.com/flopp999">https://www.buymeacoffee.com/flopp999</a></h2><br/>
         <h2>or use my Tibber link &<a href="https://tibber.com/se/invite/8af85f51">https://tibber.com/se/invite/8af85f51</a></h2><br/>
@@ -153,6 +153,8 @@ def UpdateDevice(name, nValue, sValue):
             sValue = 0
         elif sValue == "Charging":
             sValue = 1
+        elif sValue == "Error":
+            sValue = 2
         else:
             sValue = -1
         Description = "0 = Ready to charge\n1 = Charging"
@@ -162,7 +164,7 @@ def UpdateDevice(name, nValue, sValue):
         name = "Charge mode"
         if sValue == "MANUAL":
             sValue = 1
-        elif sValue == "AUTO":
+        elif sValue == "TIMER":
             sValue = 2
         else:
             sValue = -1
