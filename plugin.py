@@ -67,7 +67,7 @@ async def main():
         WriteDebug("===login start===")
         await connection.doLogin()
         WriteDebug("===login done===")
-        data = await connection.getCharging("TMBJB9NY8MF027337")
+        data = await connection.getCharging("")
         for key, value in data.items():
             for name, data in value.items():
                 Domoticz.Log(str(name))
