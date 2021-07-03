@@ -3,7 +3,7 @@
 # Author: flopp999
 #
 """
-<plugin key="SkodaConnect" name="SkodaConnect 0.17" author="flopp999" version="0.17" wikilink="https://github.com/flopp999/SkodaConnect-Domoticz" externallink="https://www.skoda-connect.com">
+<plugin key="SkodaConnect" name="SkodaConnect 0.18" author="flopp999" version="0.18" wikilink="https://github.com/flopp999/SkodaConnect-Domoticz" externallink="https://www.skoda-connect.com">
     <description>
         <h2>Support me with a coffee &<a href="https://www.buymeacoffee.com/flopp999">https://www.buymeacoffee.com/flopp999</a></h2><br/>
         <h2>or use my Tibber link &<a href="https://tibber.com/se/invite/8af85f51">https://tibber.com/se/invite/8af85f51</a></h2><br/>
@@ -65,36 +65,16 @@ async def main():
     async with ClientSession(headers={'Connection': 'keep-alive'}) as session:
         connection = Connection(session, _plugin.Email, _plugin.Password, False)
         WriteDebug("===login start===")
-        if await connection.doLogin():
-            WriteDebug("===login done===")
-            instruments = set()
-            for vehicle in connection.vehicles:
-                dashboard = vehicle.dashboard(mutable=True)
-                for instrument in dashboard.instruments:
-                    Domoticz.Log(str(instrument.attr))
-                    Domoticz.Log(str(instrument.state))
-                    if instrument.attr == "charging_time_left":
-                        continue
-                    if instrument.attr == "charging_cable_locked":
-                        continue
-                    UpdateDevice(instrument.attr, 0, instrument.state)
-        else:
-            return False
+        await connection.doLogin()
+        WriteDebug("===login done===")
+        data = await connection.getCharging("TMBJB9NY8MF027337")
+        for key, value in data.items():
+            for name, data in value.items():
+                Domoticz.Log(str(name))
+                Domoticz.Log(str(data))
+                UpdateDevice(name, 0, data)
 
-        data = await connection.getCharging(vehicle.vin)
-        WriteDebug("===data wait done===")
-
-        Domoticz.Log(str(data))
-        for charge,chargevalue in data["charging"].items():
-            Domoticz.Log(str(charge))
-            Domoticz.Log(str(chargevalue))
-            UpdateDevice(charge, 0, chargevalue)
-        for plug,plugvalue in data["plug"].items():
-            Domoticz.Log(str(plug))
-            Domoticz.Log(str(plugvalue))
-            UpdateDevice(plug, 0, plugvalue)
     WriteDebug("===main done===")
-
 
 
 class BasePlugin:
@@ -117,15 +97,17 @@ class BasePlugin:
             WriteDebug("Password too short")
         self.Count = 5
 
+        if "Skoda" not in Images:
+           Domoticz.Image("Skoda.zip").Create()
+        self.ImageID = Images["Skoda"].ID
 
     def onHeartbeat(self):
-        Domoticz.Log("HeartBeat")
         WriteDebug("===heartbeat===")
         self.Count += 1
         if self.Count == 6:
             if CheckInternet() == True:
                 asyncio.run(main())
-                self.Count = 0
+            self.Count = 0
 
 
 global _plugin
@@ -138,203 +120,105 @@ def onStart():
 
 
 def UpdateDevice(name, nValue, sValue):
-    if name == "charging":
+    if name == "stateOfChargeInPercent":
+        name = "Battery level"
+        Description = ""
         ID = 1
-        unit = ""
-    if name == "battery_level":
-        ID = 2
         unit = "%"
-    if name == "chargeMode":
-        Domoticz.Log(sValue)
-
+    elif name == "connectionState":
+        name = "Cable connected"
+        if sValue == "Disconnected":
+            sValue = 0
+        elif sValue == "Connected":
+            sValue = 1
+        else:
+            sValue = -1
+        Description = "0 = Disconnected\n1 = Connected"
+        ID = 2
+        unit = ""
+    elif name == "lockState":
+        name = "Cable locked"
+        if sValue == "Unlocked":
+            sValue = 0
+        elif sValue == "Locked":
+            sValue = 1
+        else:
+            sValue = -1
+        Description = "0 = Unlocked\n1 = Locked"
+        ID = 3
+        unit = ""
+    elif name == "state":
+        name = "Charge"
+        if sValue == "ReadyForCharging":
+            sValue = 0
+        elif sValue == "Charging":
+            sValue = 1
+        else:
+            sValue = -1
+        Description = "0 = Ready to charge\n1 = Charging"
+        ID = 4
+        unit = ""
+    elif name == "chargeMode":
+        name = "Charge mode"
         if sValue == "MANUAL":
             sValue = 1
         elif sValue == "AUTO":
             sValue = 2
         else:
             sValue = -1
-        ID = 3
-        unit = ""
-    if name == "electric_range":
-        ID = 4
-        unit = "km"
-    if name == "external_power":
+        Description = "1 = Manuel\n2 = Auto\n-1 = Unknown"
         ID = 5
-        if sValue == True:
-            sValue = 1
-        if sValue == False:
-            sValue = 0
         unit = ""
-    if name == "charging_cable_connected":
-        ID = 6
-        if sValue == True:
-            sValue = 1
-        if sValue == False:
-            sValue = 0
-        unit = ""
-    if name == "lockState":
-        name = "charging_cable_locked"
-        ID = 7
-        if sValue == "Unlocked":
-            sValue = 0
-        if sValue == "Locked":
-            sValue = 1
-        unit = ""
-    if name == "state":
-        if sValue == "ReadyForCharging":
-            sValue = 0
-        if sValue == "Charging":
-            sValue = 1
-        ID = 8
-        unit = ""
-    if name == "remainingToCompleteInSeconds":
-        ID = 9
-        name = "remainingToCompleteInMinutes"
-        sValue = sValue/60.0
-        unit = "minutes"
-    if name == "chargingPowerInWatts":
-        name = "chargingPowerInKiloWatts"
+    elif name == "chargingPowerInWatts":
+        name = "Charging power"
         sValue = sValue/1000.0
-        ID = 10
+        Description = ""
+        ID = 6
         unit = "kW"
-    if name == "chargingRateInKilometersPerHour":
-        ID = 11
+    elif name == "chargingRateInKilometersPerHour":
+        name = "Charging rate"
+        Description = ""
+        ID = 7
         unit = "km/h"
-    if name == "chargingType":
+    elif name == "chargingType":
+        name = "Charging type"
         if sValue == "Invalid":
             sValue = 0
-        if sValue == "Ac":
+        elif sValue == "Ac":
             sValue = 1
-        if sValue == "Dc":
+        elif sValue == "Dc":
             sValue = 2
-        ID = 12
+        else:
+            sValue = -1
+        Description = "0 = Unknown\n1 = AC\n2 = DC"
+        ID = 8
         unit = ""
-    if name == "connectionState":
-        ID = 13
-        if sValue == "Disconnected":
-            sValue = 0
-        if sValue == "Connected":
-            sValue = 1
-        unit = ""
-#
-    if name == "dsfgsdfg":
-        ID = 14
+    elif name == "cruisingRangeElectricInMeters":
+        name = "Range"
+        sValue = sValue/1000.0
+        Description = ""
+        ID = 9
+        unit = "km"
+    elif name == "remainingToCompleteInSeconds":
+        name = "Remaining to complete"
+        sValue = sValue/60.0
+        Description = ""
+        ID = 10
+        unit = "minutes"
+
+#    if name == "dsfgsdfg":
+#        ID = 14
 #        sValue = sValue.replace('Z', '')
 #        sValue = sValue.replace('T', ' ')
 #        sValue = sValue + " UTC"
-        unit = ""
-#
-    if name == "chargerFirmware":
-        ID = 15
-        unit = ""
-    if name == "latestFirmware":
-        ID = 16
-        unit = ""
-    if name == "voltage":
-        ID = 17
-        unit = "Volt"
-    if name == "chargerRAT":
-        ID = 18
-        unit = ""
-    if name == "lockCablePermanently":
-        ID = 19
-        unit = ""
-    if name == "inCurrentT2":
-        ID = 20
-        unit = ""
-    if name == "inCurrentT3":
-        ID = 21
-        unit = ""
-    if name == "inCurrentT4":
-        ID = 22
-        unit = ""
-    if name == "inCurrentT5":
-        ID = 23
-        unit = ""
-    if name == "outputCurrent":
-        ID = 24
-        unit = ""
-    if name == "isOnline":
-        ID = 25
-        unit = ""
-    if name == "inVoltageT1T2":
-        ID = 26
-        unit = "Volt"
-    if name == "inVoltageT1T3":
-        ID = 27
-        unit = "Volt"
-    if name == "inVoltageT1T4":
-        ID = 28
-        unit = "Volt"
-    if name == "inVoltageT1T5":
-        ID = 29
-        unit = "Volt"
-    if name == "inVoltageT2T3":
-        ID = 30
-        unit = "Volt"
-    if name == "inVoltageT2T4":
-        ID = 31
-        unit = "Volt"
-    if name == "inVoltageT2T5":
-        ID = 32
-        unit = "Volt"
-    if name == "inVoltageT3T4":
-        ID = 33
-        unit = "Volt"
-    if name == "inVoltageT3T5":
-        ID = 34
-        unit = "Volt"
-    if name == "inVoltageT4T5":
-        ID = 35
-        unit = "Volt"
-    if name == "ledMode":
-        ID = 36
-        unit = ""
-    if name == "cableRating":
-        ID = 37
-        unit = ""
-    if name == "dynamicChargerCurrent":
-        ID = 38
-        unit = ""
-    if name == "circuitTotalAllocatedPhaseConductorCurrentL1":
-        ID = 39
-        unit = ""
-    if name == "circuitTotalAllocatedPhaseConductorCurrentL2":
-        ID = 40
-        unit = ""
-    if name == "circuitTotalAllocatedPhaseConductorCurrentL3":
-        ID = 41
-        unit = ""
-    if name == "circuitTotalPhaseConductorCurrentL1":
-        ID = 42
-        unit = ""
-    if name == "circuitTotalPhaseConductorCurrentL2":
-        ID = 43
-        unit = ""
-    if name == "circuitTotalPhaseConductorCurrentL3":
-        ID = 44
-        unit = ""
-    if name == "reasonForNoCurrent":
-        ID = 45
-        unit = ""
-    if name == "wiFiAPEnabled":
-        ID = 46
-        unit = ""
-    if name == "lifetimeEnergy":
-        ID = 47
-        unit = ""
-    if name == "offlineMaxCircuitCurrentP1":
-        ID = 48
-        unit = ""
-    if name == "offlineMaxCircuitCurrentP2":
-        ID = 49
-        unit = ""
-    if name == "offlineMaxCircuitCurrentP3":
-        ID = 50
-        unit = ""
+#        unit = ""
+#    Devices[ID].Update(nValue, str(sValue), Name=name, Description=Description)
 
     if (ID in Devices):
         if (Devices[ID].sValue != str(sValue)):
+            if ID == 1:
+                Range = Devices[9].sValue
+                Devices[9].Update(nValue, str(Range), BatteryLevel=sValue)
             Devices[ID].Update(nValue, str(sValue))
 
     if (ID not in Devices):
@@ -342,12 +226,8 @@ def UpdateDevice(name, nValue, sValue):
             Used = 0
         else:
             Used = 1
-#        if ID == 14:
-#            Domoticz.Device(Name=name, Unit=ID, TypeName="Text", Used=1).Create()
 
-#        else:
-        Domoticz.Device(Name=name, Unit=ID, TypeName="Custom", Options={"Custom": "0;"+unit}, Used=Used, Description="ParameterID=\nDesignation=").Create()
-        Devices[ID].Update(nValue, str(sValue), Name=name)
+        Domoticz.Device(Name=name, Unit=ID, Image=(_plugin.ImageID), TypeName="Custom", Options={"Custom": "0;"+unit}, Used=Used, Description=Description).Create()
 
 
 def CheckInternet():
@@ -358,12 +238,6 @@ def CheckInternet():
         WriteDebug("Internet is OK")
         return True
     except:
-        if _plugin.GetToken.Connected():
-            _plugin.GetToken.Disconnect()
-        if _plugin.GetState.Connected():
-            _plugin.GetState.Disconnect()
-        if _plugin.GetConfig.Connected():
-            _plugin.GetConfig.Disconnect()
         WriteDebug("Internet is not available")
         return False
 
