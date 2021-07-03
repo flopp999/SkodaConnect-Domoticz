@@ -67,7 +67,9 @@ async def main():
         WriteDebug("===login start===")
         await connection.doLogin()
         WriteDebug("===login done===")
-        data = await connection.getCharging("TMBJB9NY8MF027337")
+        for vehicle in connection.vehicles:
+            dashboard = vehicle.dashboard(mutable=True)
+        data = await connection.getCharging(vehicle.vin)
         for key, value in data.items():
             for name, data in value.items():
                 Domoticz.Log(str(name))
@@ -155,6 +157,8 @@ def UpdateDevice(name, nValue, sValue):
             sValue = 1
         elif sValue == "Error":
             sValue = 2
+        elif sValue == "Conservation":
+            sValue = 3
         else:
             sValue = -1
         Description = "0 = Ready to charge\n1 = Charging"
