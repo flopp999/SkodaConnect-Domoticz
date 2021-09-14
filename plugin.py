@@ -3,10 +3,9 @@
 # Author: flopp999
 #
 """
-<plugin key="SkodaConnect" name="SkodaConnect 0.20" author="flopp999" version="0.20" wikilink="https://github.com/flopp999/SkodaConnect-Domoticz" externallink="https://www.skoda-connect.com">
+<plugin key="SkodaConnect" name="SkodaConnect 0.23" author="flopp999" version="0.23" wikilink="https://github.com/flopp999/SkodaConnect-Domoticz" externallink="https://www.skoda-connect.com">
     <description>
         <h2>Support me with a coffee &<a href="https://www.buymeacoffee.com/flopp999">https://www.buymeacoffee.com/flopp999</a></h2><br/>
-        <h2>or use my Tibber link &<a href="https://tibber.com/se/invite/8af85f51">https://tibber.com/se/invite/8af85f51</a></h2><br/>
         <h3>Categories that will be fetched</h3>
         <ul style="list-style-type:square">
             <li>...</li>
@@ -62,21 +61,30 @@ logger.addHandler(handler)
 
 
 async def main():
+
     async with ClientSession(headers={'Connection': 'keep-alive'}) as session:
         connection = Connection(session, _plugin.Email, _plugin.Password, False)
         WriteDebug("===login start===")
-        await connection.doLogin()
-        WriteDebug("===login done===")
-        for vehicle in connection.vehicles:
-            dashboard = vehicle.dashboard(mutable=True)
-        data = await connection.getCharging(vehicle.vin)
-        for key, value in data.items():
-            for name, data in value.items():
-                Domoticz.Log(str(name))
-                Domoticz.Log(str(data))
-                UpdateDevice(name, 0, data)
 
-    WriteDebug("===main done===")
+        try:
+            await connection.doLogin()
+            for vehicle in connection.vehicles:
+                dashboard = vehicle.dashboard(mutable=True)
+            data = await connection.getCharging(vehicle.vin)
+            for key, value in data.items():
+                for name, data in value.items():
+#                    Domoticz.Log(str(name))
+#                    Domoticz.Log(str(data))
+                    UpdateDevice(name, 0, data)
+            Domoticz.Log("Car Updated")
+#        else:
+#            Domoticz.Error("Something went wrong when access Skoda API")
+#            return False
+        except:
+            Domoticz.Log("EXCEPTSomething went wrong when access Skoda API")
+#            Domoticz.Log(str(e))
+
+        WriteDebug("===main done===")
 
 
 class BasePlugin:
@@ -97,7 +105,7 @@ class BasePlugin:
         if len(self.Password) < 4:
             Domoticz.Log("Password too short")
             WriteDebug("Password too short")
-        self.Count = 5
+        self.Count = 8
 
         if "Skoda" not in Images:
            Domoticz.Image("Skoda.zip").Create()
@@ -106,7 +114,7 @@ class BasePlugin:
     def onHeartbeat(self):
         WriteDebug("===heartbeat===")
         self.Count += 1
-        if self.Count == 6:
+        if self.Count == 9:
             if CheckInternet() == True:
                 asyncio.run(main())
             self.Count = 0
