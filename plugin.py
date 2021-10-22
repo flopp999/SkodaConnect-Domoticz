@@ -27,6 +27,7 @@
 """
 
 import Domoticz
+import traceback, sys
 
 try:
     from aiohttp import ClientSession
@@ -81,7 +82,9 @@ async def main():
 #            Domoticz.Error("Something went wrong when access Skoda API")
 #            return False
         except:
-            Domoticz.Log("EXCEPTSomething went wrong when access Skoda API")
+#            Domoticz.Log(str(traceback.format_exc()))
+#            Domoticz.Log(str(sys.exc_info()[0]))
+            Domoticz.Log("Something went wrong when access Skoda API")
 #            Domoticz.Log(str(e))
 
         WriteDebug("===main done===")
