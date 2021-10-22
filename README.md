@@ -1,0 +1,1 @@
+# SkodaConnect-Domoticz
