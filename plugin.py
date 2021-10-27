@@ -73,8 +73,8 @@ async def main():
             data = await connection.getCharging(vehicle.vin)
             for key, value in data.items():
                 for name, data in value.items():
-                    Domoticz.Log(str(name))
-                    Domoticz.Log(str(data))
+#                    Domoticz.Log(str(name))
+#                    Domoticz.Log(str(data))
                     UpdateDevice(name, 0, data)
             Domoticz.Log("Car Updated")
 #        else:
