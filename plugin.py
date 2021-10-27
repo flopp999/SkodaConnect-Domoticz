@@ -3,15 +3,13 @@
 # Author: flopp999
 #
 """
-<plugin key="SkodaConnect" name="SkodaConnect 0.24" author="flopp999" version="0.24" wikilink="https://github.com/flopp999/SkodaConnect-Domoticz" externallink="https://www.skoda-connect.com">
+<plugin key="SkodaConnect" name="SkodaConnect 0.25" author="flopp999" version="0.25" wikilink="https://github.com/flopp999/SkodaConnect-Domoticz" externallink="https://www.skoda-connect.com">
     <description>
-        <h2>Support me with a coffee &<a href="https://www.buymeacoffee.com/flopp999">https://www.buymeacoffee.com/flopp999</a></h2><br/>
-        <h3>Categories that will be fetched</h3>
-        <ul style="list-style-type:square">
-            <li>...</li>
-        </ul>
+        <h3>Support me with a coffee &<a href="https://www.buymeacoffee.com/flopp999">https://www.buymeacoffee.com/flopp999</a></h3>
+        <h3>Thanks to lendy007 https://github.com/lendy007</h3>
+        <br/>
         <h3>Configuration</h3>
-        <h2>Use same email address and password as you do for https://www.skoda-connect.com/</h2>
+        <h4>Use same email address and password as you do for https://www.skoda-connect.com/</h4>
     </description>
     <params>
         <param field="Mode1" label="Email" width="320px" required="true" default="username@domain.com"/>
@@ -69,13 +67,14 @@ async def main():
 
         try:
             await connection.doLogin()
+            await connection.get_vehicles()
             for vehicle in connection.vehicles:
                 dashboard = vehicle.dashboard(mutable=True)
             data = await connection.getCharging(vehicle.vin)
             for key, value in data.items():
                 for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
+                    Domoticz.Log(str(name))
+                    Domoticz.Log(str(data))
                     UpdateDevice(name, 0, data)
             Domoticz.Log("Car Updated")
 #        else:
@@ -117,7 +116,7 @@ class BasePlugin:
     def onHeartbeat(self):
         WriteDebug("===heartbeat===")
         self.Count += 1
-        if self.Count == 9:
+        if self.Count >= 5:
             if CheckInternet() == True:
                 asyncio.run(main())
             self.Count = 0
@@ -133,6 +132,8 @@ def onStart():
 
 
 def UpdateDevice(name, nValue, sValue):
+    Pass = True
+
     if name == "stateOfChargeInPercent":
         name = "Battery level"
         Description = ""
@@ -145,6 +146,7 @@ def UpdateDevice(name, nValue, sValue):
         elif sValue == "Connected":
             sValue = 1
         else:
+            Domoticz.Error("Please create an issue at github and write this error. Missing connectionState - "+str(sValue))
             sValue = -1
         Description = "0 = Disconnected\n1 = Connected"
         ID = 2
@@ -156,6 +158,7 @@ def UpdateDevice(name, nValue, sValue):
         elif sValue == "Locked":
             sValue = 1
         else:
+            Domoticz.Error("Please create an issue at github and write this error. Missing lockState - "+str(sValue))
             sValue = -1
         Description = "0 = Unlocked\n1 = Locked"
         ID = 3
@@ -171,6 +174,7 @@ def UpdateDevice(name, nValue, sValue):
         elif sValue == "Conservation":
             sValue = 3
         else:
+            Domoticz.Error("Please create an issue at github and write this error. Missing state - "+str(sValue))
             sValue = -1
         Description = "0 = Ready to charge\n1 = Charging"
         ID = 4
@@ -182,6 +186,7 @@ def UpdateDevice(name, nValue, sValue):
         elif sValue == "TIMER":
             sValue = 2
         else:
+            Domoticz.Error("Please create an issue at github and write this error. Missing chargeMode - "+str(sValue))
             sValue = -1
         Description = "1 = Manuel\n2 = Auto\n-1 = Unknown"
         ID = 5
@@ -206,6 +211,7 @@ def UpdateDevice(name, nValue, sValue):
         elif sValue == "Dc":
             sValue = 2
         else:
+            Domoticz.Error("Please create an issue at github and write this error. Missing chargingType - "+str(sValue))
             sValue = -1
         Description = "0 = Unknown\n1 = AC\n2 = DC"
         ID = 8
@@ -222,6 +228,47 @@ def UpdateDevice(name, nValue, sValue):
         Description = ""
         ID = 10
         unit = "minutes"
+    elif name == "chargingSettings":
+        name = "Charge Settings"
+        if sValue == "DEFAULT":
+            sValue = 0
+        else:
+            Domoticz.Error("Please create an issue at github and write this error. Missing chargingSettings - "+str(sValue))
+            sValue = -1
+        Description = ""
+        ID = 11
+        unit = "?"
+    elif name == "maxChargeCurrentAc":
+#        name = ""
+#        sValue = sValue/60.0
+        if sValue == "Maximum":
+            sValue = 1
+        else:
+            Domoticz.Error("Please create an issue at github and write this error. Missing maxChargeCurrentAc - "+str(sValue))
+            sValue = -1
+        Description = ""
+        ID = 12
+        unit = ""
+    elif name == "autoUnlockPlugWhenCharged":
+#        name = ""
+#        sValue = sValue/60.0
+        if sValue == "Permanent":
+            sValue = 0
+        else:
+            Domoticz.Error("Please create an issue at github and write this error. Missing connectionState - "+str(sValue))
+            sValue = -1
+        Description = ""
+        ID = 13
+        unit = ""
+    elif name == "targetStateOfChargeInPercent":
+#        name = ""
+#        sValue = sValue/60.0
+        Description = ""
+        ID = 14
+        unit = "%"
+    else:
+        Domoticz.Error("Missing device: "+name)
+        Pass = False
 
 #    if name == "dsfgsdfg":
 #        ID = 14
@@ -231,27 +278,31 @@ def UpdateDevice(name, nValue, sValue):
 #        unit = ""
 #    Devices[ID].Update(nValue, str(sValue), Name=name, Description=Description)
 
-    if (ID in Devices):
-        if (Devices[ID].sValue != str(sValue)):
-            if ID == 1:
-                Range = Devices[9].sValue
-                Devices[9].Update(nValue, str(Range), BatteryLevel=sValue)
-            Devices[ID].Update(nValue, str(sValue))
+#    Domoticz.Log(str(ID))
+#    Domoticz.Log(str(Devices))
 
-    if (ID not in Devices):
-        if sValue == "-32768":
-            Used = 0
-        else:
-            Used = 1
+    if Pass:
+        if ID in Devices:
+            if (Devices[ID].sValue != str(sValue)):
+                if ID == 1:
+                    Range = Devices[9].sValue
+                    Devices[9].Update(nValue, str(Range), BatteryLevel=sValue)
+                Devices[ID].Update(nValue, str(sValue))
 
-        Domoticz.Device(Name=name, Unit=ID, Image=(_plugin.ImageID), TypeName="Custom", Options={"Custom": "0;"+unit}, Used=Used, Description=Description).Create()
+        if (ID not in Devices) and Pass == 1:
+            if sValue == "-32768":
+                Used = 0
+            else:
+                Used = 1
+
+            Domoticz.Device(Name=name, Unit=ID, Image=(_plugin.ImageID), TypeName="Custom", Options={"Custom": "0;"+unit}, Used=Used, Description=Description).Create()
 
 
 def CheckInternet():
     WriteDebug("Entered CheckInternet")
     try:
         WriteDebug("Ping")
-        requests.get(url='https://api.easee.cloud/', timeout=2)
+        requests.get(url='https://msg.volkswagen.de', timeout=2)
         WriteDebug("Internet is OK")
         return True
     except:
