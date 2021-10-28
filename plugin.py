@@ -294,7 +294,7 @@ def UpdateDeviceCharge(name, sValue):
         unit = "kW"
         UpdateDevice(name, sValue, Pass, ID, unit, Description)
         ID = 77
-        name = "Charge rate/h %"
+        name = "Charge rate %/h"
         sValue = float(sValue) / int(_plugin.Battery) * 100
         unit = "%/h"
 
