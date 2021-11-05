@@ -69,7 +69,7 @@ async def main():
             await connection.doLogin()
             await connection.get_vehicles()
             for vehicle in connection.vehicles:
-#                Domoticz.Log(str(vars(vehicle)))
+                Domoticz.Log(str(vars(vehicle)))
 #                for name,data in vars(vehicle).items():
 #                    Domoticz.Log(str(name))
 #                    Domoticz.Log(str(data))
@@ -284,8 +284,23 @@ def UpdateDeviceTimers(data):
         ID = 23
         unit = ""
         UpdateDevice(name, sValue, Pass, ID, unit, Description)
+        if data["enabled"] == True:
+            status = "Enabled"
+        else:
+            status = "Disabled"
+        if data["type"] == "ONE_OFF":
+            Type = "One time"
+        else:
+            Type = "Recurring"
         name = "Timer 1 text"
-        sValue = str(data["enabled"])+str(data["time"])
+        date = ""
+        if "date" in data:
+            date = data["date"]
+        if "recurringOn" in data:
+            for each in data["recurringOn"]:
+                date += str(each)
+                date += str(" ")
+        sValue = str(status)+" "+str(Type)+" "+str(data["time"])+" "+str(date)
         ID = 34
         UpdateDeviceText(name, sValue, Pass, ID, unit, Description)
 
@@ -302,6 +317,26 @@ def UpdateDeviceTimers(data):
         Description = "0 = Unlocked\n1 = Locked"
         ID = 24
         unit = ""
+        UpdateDevice(name, sValue, Pass, ID, unit, Description)
+        if data["enabled"] == True:
+            status = "Enabled"
+        else:
+            status = "Disabled"
+        if data["type"] == "ONE_OFF":
+            Type = "One time"
+        else:
+            Type = "Recurring"
+        name = "Timer 1 text"
+        date = ""
+        if "date" in data:
+            date = data["date"]
+        if "recurringOn" in data:
+            for each in data["recurringOn"]:
+                date += str(each)
+                date += str(" ")
+        sValue = str(status)+" "+str(Type)+" "+str(data["time"])+" "+str(date)
+        ID = 35
+        UpdateDeviceText(name, sValue, Pass, ID, unit, Description)
 
     if Pass:
         UpdateDevice(name, sValue, Pass, ID, unit, Description)
