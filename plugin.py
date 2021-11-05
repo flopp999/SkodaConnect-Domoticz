@@ -3,7 +3,7 @@
 # Author: flopp999
 #
 """
-<plugin key="SkodaConnect" name="SkodaConnect 0.26" author="flopp999" version="0.26" wikilink="https://github.com/flopp999/SkodaConnect-Domoticz" externallink="https://www.skoda-connect.com">
+<plugin key="SkodaConnect" name="SkodaConnect 0.27" author="flopp999" version="0.27" wikilink="https://github.com/flopp999/SkodaConnect-Domoticz" externallink="https://www.skoda-connect.com">
     <description>
         <h3>Support me with a coffee &<a href="https://www.buymeacoffee.com/flopp999">https://www.buymeacoffee.com/flopp999</a></h3>
         <h3>Thanks to lendy007 https://github.com/lendy007</h3>
@@ -14,7 +14,6 @@
     <params>
         <param field="Mode1" label="Email" width="320px" required="true" default="username@domain.com"/>
         <param field="Mode2" label="Password" password="true" width="320px" required="true" default="Password"/>
-        <param field="Mode3" label="Netto battery kWh" width="70px" required="true" default="50"/>
         <param field="Mode6" label="Debug to file (SkodaConnect.log)" width="70px">
             <options>
                 <option label="Yes" value="Yes" />
@@ -69,9 +68,42 @@ async def main():
         try:
             await connection.doLogin()
             await connection.get_vehicles()
-#            Domoticz.Log(str(type(connection)))
             for vehicle in connection.vehicles:
-                dashboard = vehicle.dashboard(mutable=True)
+#                Domoticz.Log(str(vars(vehicle)))
+#                for name,data in vars(vehicle).items():
+#                    Domoticz.Log(str(name))
+#                    Domoticz.Log(str(data))
+#                    if name == "_states":
+#                        for name,data in data.items():
+#                            Domoticz.Log(str(name))
+#                            Domoticz.Log(str(data))
+#                Domoticz.Log(str(vars(vehicle)["_states"]["charging"]))
+#                Domoticz.Log(str(vars(vehicle)["_states"]["battery"]))
+#                Domoticz.Log(str(vars(vehicle)["_states"]["chargerSettings"]))
+#                Domoticz.Log(str(vars(vehicle)["_states"]["airConditioning"]))
+#                Domoticz.Log(str(vars(vehicle)["_states"]["airConditioningSettings"]["zonesSettings"]))
+                for name,data in vars(vehicle)["_states"]["airConditioningSettings"]["zonesSettings"].items():
+                    UpdateDeviceCharge(name, data)
+                for name in vars(vehicle)["_states"]["timers"]:
+#                    for data in name.items():
+                    UpdateDeviceTimers(name)
+#                    Domoticz.Log(str(name))
+#                        Domoticz.Log(str(data))
+#                    Domotticz.Log(str(data))
+#                    UpdateDeviceCharge(name, data)
+#                for each in vars(vehicle):
+#                    if isinstance(vars(vehicle)[each], dict):
+#                        Domoticz.Log(str(vars(vehicle)[each].items()))
+#                        for a,b in vars(vehicle)[each].items():
+#                            Domoticz.Log(str(a))
+#                            Domoticz.Log(str(b))
+#                    if isinstance(vars(vehicle)[each], list):
+#                        Domoticz.Log(str(vars(vehicle)[each].items()))
+#                        for a,b in vars(vehicle)[each].values():
+#                            Domoticz.Log(str(a))
+#                            Domoticz.Log(str(b))
+#                dashboard = vehicle.dashboard(mutable=True)
+                _plugin.BatteryBruttokWh = vars(vehicle)['_specification']['battery']['capacityInKWh']
 #                Domoticz.Log(str(dashboard))
 #                for instrument in dashboard.instruments:
 #                    Domoticz.Log(str(instrument))
@@ -171,6 +203,13 @@ async def main():
 #                    Domoticz.Log(str(name))
 #                    Domoticz.Log(str(data))
                     UpdateDeviceAirCondition(name, data)
+#            await connection.set_token('skoda')
+#            response = await connection.get('https://api.connect.skoda-auto.cz/api/v2/garage/vehicles')
+#            self.BatteryBruttokWh = response[0]["specification"]["battery"]["capacityInKWh"]
+#            UpdateDevice(name, data)
+#            Domoticz.Log(str(vehicle.specifications))
+#            Domoticz.Log(str(dir(vehicle)))
+
 #        else:
 #            Domoticz.Error("Something went wrong when access Skoda API")
 #            return False
@@ -192,7 +231,7 @@ class BasePlugin:
 
     def onStart(self):
         WriteDebug("===onStart===")
-        self.Battery = Parameters["Mode3"]
+        self.BatteryBruttokWh = 1
         self.Email = Parameters["Mode1"]
         self.Password = Parameters["Mode2"]
         if len(self.Email) < 5:
@@ -224,6 +263,49 @@ _plugin = BasePlugin()
 def onStart():
     global _plugin
     _plugin.onStart()
+
+
+def UpdateDeviceTimers(data):
+    Pass = True
+    Domoticz.Log(str(type(data)))
+    Domoticz.Log(str(data))
+    Domoticz.Log(str(data["id"]))
+    Domoticz.Log(str(data["enabled"]))
+    if data["id"] == 1:
+        name = "Timer 1"
+        if data["enabled"] == False:
+            sValue = 0
+        elif data["enabled"] == True:
+            sValue = 1
+        else:
+            Domoticz.Error("Please create an issue at github and write this error. Missing "+str(name)+" - "+str(sValue))
+            sValue = -1
+        Description = "0 = Unlocked\n1 = Locked"
+        ID = 23
+        unit = ""
+        UpdateDevice(name, sValue, Pass, ID, unit, Description)
+        name = "Timer 1 text"
+        sValue = str(data["enabled"])+str(data["time"])
+        ID = 34
+        UpdateDeviceText(name, sValue, Pass, ID, unit, Description)
+
+
+    if data["id"] == 2:
+        name = "Timer 2"
+        if data["enabled"] == False:
+            sValue = 0
+        elif data["enabled"] == True:
+            sValue = 1
+        else:
+            Domoticz.Error("Please create an issue at github and write this error. Missing "+str(name)+" - "+str(sValue))
+            sValue = -1
+        Description = "0 = Unlocked\n1 = Locked"
+        ID = 24
+        unit = ""
+
+    if Pass:
+        UpdateDevice(name, sValue, Pass, ID, unit, Description)
+
 
 
 def UpdateDeviceCharge(name, sValue):
@@ -268,6 +350,8 @@ def UpdateDeviceCharge(name, sValue):
             sValue = 2
         elif sValue == "Conservation":
             sValue = 3
+        elif sValue == "ChargePurposeReachedAndConservation":
+            sValue = 4
         else:
             Domoticz.Error("Please create an issue at github and write this error. Missing "+str(name)+" - "+str(sValue))
             sValue = -1
@@ -293,9 +377,9 @@ def UpdateDeviceCharge(name, sValue):
         ID = 6
         unit = "kW"
         UpdateDevice(name, sValue, Pass, ID, unit, Description)
-        ID = 77
+        ID = 29
         name = "Charging rate %/h"
-        sValue = float(sValue) / int(_plugin.Battery) * 100
+        sValue = int(float(sValue) / int(_plugin.BatteryBruttokWh) * 100)
         unit = "%/h"
 
 
@@ -344,7 +428,6 @@ def UpdateDeviceCharge(name, sValue):
         unit = ""
     elif name == "maxChargeCurrentAc":
         name = "Charge max current(AC)"
-#        sValue = sValue/60.0
         if sValue == "Maximum":
             sValue = 1
         elif sValue == "Reduced":
@@ -357,7 +440,6 @@ def UpdateDeviceCharge(name, sValue):
         unit = ""
     elif name == "autoUnlockPlugWhenCharged":
         name = "Cable unlock when charged"
-#        sValue = sValue/60.0
         if sValue == "Permanent":
             sValue = 1
         elif sValue == "Off":
@@ -370,12 +452,35 @@ def UpdateDeviceCharge(name, sValue):
         unit = ""
     elif name == "targetStateOfChargeInPercent":
         name = "Charge battery up to"
-#        sValue = sValue/60.0
         Description = ""
         ID = 14
         unit = "%"
+    elif name == "frontLeftEnabled":
+        name = "Air conditioning heat front seat left"
+        if sValue == False:
+            sValue = 0
+        elif sValue == True:
+            sValue = 1
+        else:
+            Domoticz.Error("Please create an issue at github and write this error. Missing "+str(name)+" - "+str(sValue))
+            sValue = -1
+        Description = ""
+        ID = 30
+        unit = ""
+    elif name == "frontRightEnabled":
+        name = "Air conditioning heat front seat right"
+        if sValue == False:
+            sValue = 0
+        elif sValue == True:
+            sValue = 1
+        else:
+            Domoticz.Error("Please create an issue at github and write this error. Missing "+str(name)+" - "+str(sValue))
+            sValue = -1
+        Description = ""
+        ID = 31
+        unit = ""
     else:
-        Domoticz.Error("Missing device: "+name)
+        Domoticz.Error("Please create an issue at github and write this error. Missing device "+str(name))
         Pass = False
 
     if Pass:
@@ -421,22 +526,11 @@ def UpdateDeviceAirCondition(name, sValue):
     elif name == "windowsHeatingStatuses":
         Pass = False
         pass
-#        for each in sValue:
-#            Domoticz.Log(str(type(each)))
-#            Domoticz.Log(str(each["windowLocation"])+str(each["state"]))
-#            ID = 23
-#            sValue
-#        name = ""
-#        if sValue == "Disconnected":
-#            sValue = 0
-#        elif sValue == "Connected":
-#            sValue = 1
-#        else:
-#            Domoticz.Error("Please create an issue at github and write this error. Missing "+str(name)+" - "+str(sValue))
-#            sValue = -1
-#        Description = "0 = Disconnected\n1 = Connected"
-#        ID = 23
-#        unit = ""
+        for each in sValue:
+            data=[]
+            for a,b in each.items():
+                data.append(b)
+            UpdateDeviceAirCondition(data[0], data[1])
     elif name == "seatHeatingSupport":
         Pass = False
         pass
@@ -466,17 +560,6 @@ def UpdateDeviceAirCondition(name, sValue):
     elif name == "temperatureConversionTableUsed":
         Pass = False
         pass
-#        name = ""
-#        if sValue == "CELSIUS_KELVIN":
-#            sValue = 0
-#        elif sValue == "Connected":
-#            sValue = 1
-#        else:
-#            Domoticz.Error("Please create an issue at github and write this error. Missing "+str(name)+" - "+str(sValue))
-#            sValue = -1
-#        Description = "0 = CELSIUS_KELVIN\n1 = ?"
-#        ID = 26
-#        unit = ""
     elif name == "airConditioningAtUnlock":
         name = "Air conditioning at unlock"
         if sValue == False:
@@ -490,7 +573,7 @@ def UpdateDeviceAirCondition(name, sValue):
         ID = 27
         unit = ""
     elif name == "windowHeatingEnabled":
-#        name = ""
+        name = "Air conditioning heat windows"
         if sValue == False:
             sValue = 0
         elif sValue == True:
@@ -501,34 +584,38 @@ def UpdateDeviceAirCondition(name, sValue):
         Description = "0 = No\n1 = Yes"
         ID = 28
         unit = ""
-    elif name == "zonesSettings":
-#        name = ""
-        if sValue == "Disconnected":
+    elif name == "Front":
+        name = "Air conditioning front window heating"
+        if sValue == "Off":
             sValue = 0
-        elif sValue == "Connected":
+        elif sValue == "On":
             sValue = 1
         else:
-#            Domoticz.Error("Please create an issue at github and write this error. Missing "+str(name)+" - "+str(sValue))
+            Domoticz.Error("Please create an issue at github and write this error. Missing "+str(name)+" - "+str(sValue))
             sValue = -1
-        Description = "0 = Disconnected\n1 = Connected"
-        ID = 29
+        Description = ""
+        ID = 32
         unit = ""
+    elif name == "Rear":
+        name = "Air conditioning rear window heating"
+        if sValue == "Off":
+            sValue = 0
+        elif sValue == "On":
+            sValue = 1
+        else:
+            Domoticz.Error("Please create an issue at github and write this error. Missing "+str(name)+" - "+str(sValue))
+            sValue = -1
+        Description = ""
+        ID = 33
+        unit = ""
+    elif name == "zonesSettings":
+        Pass = False
+        pass
     else:
         Domoticz.Error("Missing device: "+name)
         Pass = False
     if Pass:
         UpdateDevice(name, sValue, Pass, ID, unit, Description)
-
-#    if name == "dsfgsdfg":
-#        ID = 14
-#        sValue = sValue.replace('Z', '')
-#        sValue = sValue.replace('T', ' ')
-#        sValue = sValue + " UTC"
-#        unit = ""
-#    Devices[ID].Update(nValue, str(sValue), Name=name, Description=Description)
-
-#    Domoticz.Log(str(ID))
-#    Domoticz.Log(str(Devices))
 
 def UpdateDevice(name, sValue, Pass, ID, unit, Description):
     if Pass:
@@ -546,6 +633,21 @@ def UpdateDevice(name, sValue, Pass, ID, unit, Description):
                 Used = 1
 
             Domoticz.Device(Name=name, Unit=ID, Image=(_plugin.ImageID), TypeName="Custom", Options={"Custom": "0;"+unit}, Used=Used, Description=Description).Create()
+            Devices[ID].Update(0, str(sValue), Name=name)
+
+def UpdateDeviceText(name, sValue, Pass, ID, unit, Description):
+    if Pass:
+        if ID in Devices:
+            if (Devices[ID].sValue != str(sValue)):
+                Devices[ID].Update(0, str(sValue))
+
+        if (ID not in Devices) and Pass == 1:
+            if sValue == "-32768":
+                Used = 0
+            else:
+                Used = 1
+
+            Domoticz.Device(Name=name, Unit=ID, Image=(_plugin.ImageID), TypeName="Text", Used=Used).Create()
             Devices[ID].Update(0, str(sValue), Name=name)
 
 
