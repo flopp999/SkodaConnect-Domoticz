@@ -69,7 +69,7 @@ async def main():
             await connection.doLogin()
             await connection.get_vehicles()
             for vehicle in connection.vehicles:
-                Domoticz.Log(str(vars(vehicle)))
+#                Domoticz.Log(str(vars(vehicle)))
 #                for name,data in vars(vehicle).items():
 #                    Domoticz.Log(str(name))
 #                    Domoticz.Log(str(data))
@@ -267,10 +267,10 @@ def onStart():
 
 def UpdateDeviceTimers(data):
     Pass = True
-    Domoticz.Log(str(type(data)))
-    Domoticz.Log(str(data))
-    Domoticz.Log(str(data["id"]))
-    Domoticz.Log(str(data["enabled"]))
+#    Domoticz.Log(str(type(data)))
+#    Domoticz.Log(str(data))
+#    Domoticz.Log(str(data["id"]))
+#    Domoticz.Log(str(data["enabled"]))
     if data["id"] == 1:
         name = "Timer 1"
         if data["enabled"] == False:
