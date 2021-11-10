@@ -326,7 +326,7 @@ def UpdateDeviceTimers(data):
             Type = "One time"
         else:
             Type = "Recurring"
-        name = "Timer 1 text"
+        name = "Timer 2 text"
         date = ""
         if "date" in data:
             date = data["date"]
