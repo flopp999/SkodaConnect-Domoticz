@@ -69,6 +69,7 @@ async def main():
             await connection.doLogin()
             await connection.get_vehicles()
             for vehicle in connection.vehicles:
+
 #                Domoticz.Log(str(vars(vehicle)))
 #                for name,data in vars(vehicle).items():
 #                    Domoticz.Log(str(name))
@@ -107,102 +108,19 @@ async def main():
 #                Domoticz.Log(str(dashboard))
 #                for instrument in dashboard.instruments:
 #                    Domoticz.Log(str(instrument))
+
+                dashboard = vehicle.dashboard(mutable=True)
+
             data = await connection.getCharging(vehicle.vin)
             for key, value in data.items():
                 for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
                     UpdateDeviceCharge(name, data)
             Domoticz.Log("Car Updated")
-#            data = await connection.getTimers(vehicle.vin)
-#            Domoticz.Log(str(data))
-#            Domoticz.Log(str(type(data)))
-#            for key, value in data.items():
-#                Domoticz.Log(str(key))
-#                Domoticz.Log(str(value))
-#                for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
-#            data = await connection.getConsentInfo(vehicle.vin)
-#            Domoticz.Log(str(data))
-#            for key, value in data.items():
-#                for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
-#            data = await connection.getRealCarData(vehicle.vin)
-#            Domoticz.Log(str(data))
-#            for key, value in data.items():
-#                for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
-#            data = await connection.getHomeRegion(vehicle.vin)
-#            Domoticz.Log(str(data))
-#            for key, value in data.items():
-#                for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
-#            data = await connection.getOperationList(vehicle.vin)
-#            Domoticz.Log(str(data))
-#            for key, value in data.items():
-#                for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
-#            data = await connection.getVehicleStatusReport(vehicle.vin)
-#            Domoticz.Log(str(data))
-#            for key, value in data.items():
-#                for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
-#            data = await connection.getVehicleStatus(vehicle.vin)
-#            Domoticz.Log(str(data))
-#            for key, value in data.items():
-#                for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
-#            data = await connection.getTripStatistics(vehicle.vin)
-#            Domoticz.Log(str(data))
-#            for key, value in data.items():
-#                for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
-#            data = await connection.getPosition(vehicle.vin)
-#            Domoticz.Log(str(data))
-#            for key, value in data.items():
-#                for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
-#            data = await connection.getDeparturetimer(vehicle.vin)
-#            Domoticz.Log(str(data))
-#            for key, value in data.items():
-#                for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
-#            data = await connection.getClimater(vehicle.vin)
-#            Domoticz.Log(str(data))
-#            for key, value in data.items():
-#                for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
-#            data = await connection.getCharger(vehicle.vin)
-#            Domoticz.Log(str(data))
-#            for key, value in data.items():
-#                for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
-#            data = await connection.getPreHeater(vehicle.vin)
-#            Domoticz.Log(str(data))
-
-#            for key, value in data.items():
-#                for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
             data = await connection.getAirConditioning(vehicle.vin)
-#            Domoticz.Log(str(data))
             for key, value in data.items():
                 for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
                     UpdateDeviceAirCondition(name, data)
+
 #            await connection.set_token('skoda')
 #            response = await connection.get('https://api.connect.skoda-auto.cz/api/v2/garage/vehicles')
 #            self.BatteryBruttokWh = response[0]["specification"]["battery"]["capacityInKWh"]
@@ -217,7 +135,6 @@ async def main():
             Domoticz.Log(str(traceback.format_exc()))
             Domoticz.Log(str(sys.exc_info()[0]))
             Domoticz.Log("Something went wrong when access Skoda API")
-#            Domoticz.Log(str(e))
 
         WriteDebug("===main done===")
 
@@ -559,8 +476,6 @@ def UpdateDeviceAirCondition(name, sValue):
         ID = 22
         unit = ""
     elif name == "windowsHeatingStatuses":
-        Pass = False
-        pass
         for each in sValue:
             data=[]
             for a,b in each.items():
@@ -569,23 +484,6 @@ def UpdateDeviceAirCondition(name, sValue):
     elif name == "seatHeatingSupport":
         Pass = False
         pass
-#        Domoticz.Log(str(type(sValue)))
-#        for name, data in sValue.items():
-#            for a,b in each.items():
-#            Domoticz.Log(str(each)+str(data))
-#            name = each
-#            sValue = data
-#        name = ""
-#        if sValue == "Disconnected":
-#            sValue = 0
-#        elif sValue == "Connected":
-#            sValue = 1
-#        else:
-#            Domoticz.Error("Please create an issue at github and write this error. Missing "+str(name)+" - "+str(sValue))
- #           sValue = -1
- #       Description = "0 = Disconnected\n1 = Connected"
- #       ID = 24
- #       unit = ""
     elif name == "targetTemperatureInKelvin":
         name = "Air conditioning set temperature"
         sValue = sValue - 273.15
@@ -653,22 +551,21 @@ def UpdateDeviceAirCondition(name, sValue):
         UpdateDevice(name, sValue, Pass, ID, unit, Description)
 
 def UpdateDevice(name, sValue, Pass, ID, unit, Description):
-    if Pass:
-        if ID in Devices:
-            if (Devices[ID].sValue != str(sValue)):
-                if ID == 1:
-                    Range = Devices[9].sValue
-                    Devices[9].Update(0, str(Range), BatteryLevel=sValue)
-                Devices[ID].Update(0, str(sValue))
+    if ID in Devices:
+        if (Devices[ID].sValue != str(sValue)):
+            if ID == 1:
+                Range = Devices[9].sValue
+                Devices[9].Update(0, str(Range), BatteryLevel=sValue)
+            Devices[ID].Update(0, str(sValue))
 
-        if (ID not in Devices) and Pass == 1:
-            if sValue == "-32768":
-                Used = 0
-            else:
-                Used = 1
+    if (ID not in Devices) and Pass == 1:
+        if sValue == "-32768":
+            Used = 0
+        else:
+            Used = 1
 
-            Domoticz.Device(Name=name, Unit=ID, Image=(_plugin.ImageID), TypeName="Custom", Options={"Custom": "0;"+unit}, Used=Used, Description=Description).Create()
-            Devices[ID].Update(0, str(sValue), Name=name)
+        Domoticz.Device(Name=name, Unit=ID, Image=(_plugin.ImageID), TypeName="Custom", Options={"Custom": "0;"+unit}, Used=Used, Description=Description).Create()
+        Devices[ID].Update(0, str(sValue), Name=name)
 
 def UpdateDeviceText(name, sValue, Pass, ID, unit, Description):
     if Pass:
