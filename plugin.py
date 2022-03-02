@@ -3,7 +3,7 @@
 # Author: flopp999
 #
 """
-<plugin key="SkodaConnect" name="SkodaConnect 0.28" author="flopp999" version="0.28" wikilink="https://github.com/flopp999/SkodaConnect-Domoticz" externallink="https://www.skoda-connect.com">
+<plugin key="SkodaConnect" name="SkodaConnect 0.29" author="flopp999" version="0.29" wikilink="https://github.com/flopp999/SkodaConnect-Domoticz" externallink="https://www.skoda-connect.com">
     <description>
         <h3>Support me with a coffee &<a href="https://www.buymeacoffee.com/flopp999">https://www.buymeacoffee.com/flopp999</a></h3>
         <h3>Thanks to lendy007 https://github.com/lendy007</h3>
@@ -82,142 +82,26 @@ async def main():
 #                Domoticz.Log(str(vars(vehicle)["_states"]["chargerSettings"]))
 #                Domoticz.Log(str(vars(vehicle)["_states"]["airConditioning"]))
 #                Domoticz.Log(str(vars(vehicle)["_states"]["airConditioningSettings"]["zonesSettings"]))
-                for name,data in vars(vehicle)["_states"]["airConditioningSettings"]["zonesSettings"].items():
-                    UpdateDeviceCharge(name, data)
-                for name in vars(vehicle)["_states"]["timers"]:
-#                    for data in name.items():
-                    UpdateDeviceTimers(name)
-#                    Domoticz.Log(str(name))
-#                        Domoticz.Log(str(data))
-#                    Domotticz.Log(str(data))
-#                    UpdateDeviceCharge(name, data)
-#                for each in vars(vehicle):
-#                    if isinstance(vars(vehicle)[each], dict):
-#                        Domoticz.Log(str(vars(vehicle)[each].items()))
-#                        for a,b in vars(vehicle)[each].items():
-#                            Domoticz.Log(str(a))
-#                            Domoticz.Log(str(b))
-#                    if isinstance(vars(vehicle)[each], list):
-#                        Domoticz.Log(str(vars(vehicle)[each].items()))
-#                        for a,b in vars(vehicle)[each].values():
-#                            Domoticz.Log(str(a))
-#                            Domoticz.Log(str(b))
-#                dashboard = vehicle.dashboard(mutable=True)
-                _plugin.BatteryBruttokWh = vars(vehicle)['_specification']['battery']['capacityInKWh']
-#                Domoticz.Log(str(dashboard))
-#                for instrument in dashboard.instruments:
-#                    Domoticz.Log(str(instrument))
+                if "_states" in vars(vehicle):
+                    for name,data in vars(vehicle)["_states"]["airConditioningSettings"]["zonesSettings"].items():
+                        UpdateDeviceCharge(name, data)
+                    for name in vars(vehicle)["_states"]["timers"]:
+                        UpdateDeviceTimers(name)
+                if "_specification" in vars(vehicle):
+                    _plugin.BatteryBruttokWh = vars(vehicle)['_specification']['battery']['capacityInKWh']
             data = await connection.getCharging(vehicle.vin)
             for key, value in data.items():
                 for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
                     UpdateDeviceCharge(name, data)
             Domoticz.Log("Car Updated")
-#            data = await connection.getTimers(vehicle.vin)
-#            Domoticz.Log(str(data))
-#            Domoticz.Log(str(type(data)))
-#            for key, value in data.items():
-#                Domoticz.Log(str(key))
-#                Domoticz.Log(str(value))
-#                for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
-#            data = await connection.getConsentInfo(vehicle.vin)
-#            Domoticz.Log(str(data))
-#            for key, value in data.items():
-#                for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
-#            data = await connection.getRealCarData(vehicle.vin)
-#            Domoticz.Log(str(data))
-#            for key, value in data.items():
-#                for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
-#            data = await connection.getHomeRegion(vehicle.vin)
-#            Domoticz.Log(str(data))
-#            for key, value in data.items():
-#                for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
-#            data = await connection.getOperationList(vehicle.vin)
-#            Domoticz.Log(str(data))
-#            for key, value in data.items():
-#                for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
-#            data = await connection.getVehicleStatusReport(vehicle.vin)
-#            Domoticz.Log(str(data))
-#            for key, value in data.items():
-#                for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
-#            data = await connection.getVehicleStatus(vehicle.vin)
-#            Domoticz.Log(str(data))
-#            for key, value in data.items():
-#                for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
-#            data = await connection.getTripStatistics(vehicle.vin)
-#            Domoticz.Log(str(data))
-#            for key, value in data.items():
-#                for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
-#            data = await connection.getPosition(vehicle.vin)
-#            Domoticz.Log(str(data))
-#            for key, value in data.items():
-#                for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
-#            data = await connection.getDeparturetimer(vehicle.vin)
-#            Domoticz.Log(str(data))
-#            for key, value in data.items():
-#                for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
-#            data = await connection.getClimater(vehicle.vin)
-#            Domoticz.Log(str(data))
-#            for key, value in data.items():
-#                for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
-#            data = await connection.getCharger(vehicle.vin)
-#            Domoticz.Log(str(data))
-#            for key, value in data.items():
-#                for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
-#            data = await connection.getPreHeater(vehicle.vin)
-#            Domoticz.Log(str(data))
-
-#            for key, value in data.items():
-#                for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
             data = await connection.getAirConditioning(vehicle.vin)
-#            Domoticz.Log(str(data))
             for key, value in data.items():
                 for name, data in value.items():
-#                    Domoticz.Log(str(name))
-#                    Domoticz.Log(str(data))
                     UpdateDeviceAirCondition(name, data)
-#            await connection.set_token('skoda')
-#            response = await connection.get('https://api.connect.skoda-auto.cz/api/v2/garage/vehicles')
-#            self.BatteryBruttokWh = response[0]["specification"]["battery"]["capacityInKWh"]
-#            UpdateDevice(name, data)
-#            Domoticz.Log(str(vehicle.specifications))
-#            Domoticz.Log(str(dir(vehicle)))
-
-#        else:
-#            Domoticz.Error("Something went wrong when access Skoda API")
-#            return False
         except:
-            Domoticz.Log(str(traceback.format_exc()))
-            Domoticz.Log(str(sys.exc_info()[0]))
-            Domoticz.Log("Something went wrong when access Skoda API")
-#            Domoticz.Log(str(e))
+            Domoticz.Error(str(traceback.format_exc()))
+            Domoticz.Error(str(sys.exc_info()[0]))
+            Domoticz.Error("Something went wrong when access Skoda API, try to restart hardware")
 
         WriteDebug("===main done===")
 
@@ -243,9 +127,10 @@ class BasePlugin:
             WriteDebug("Password too short")
         self.Count = 8
 
-        if "Skoda" not in Images:
-           Domoticz.Image("Skoda.zip").Create()
-        self.ImageID = Images["Skoda"].ID
+        if os.path.isfile(dir+'/Skoda.zip'):
+            if 'Skoda' not in Images:
+                Domoticz.Image("Skoda.zip").Create()
+            self.ImageID = Images["Skoda"].ID
 
     def onHeartbeat(self):
         WriteDebug("===heartbeat===")
@@ -399,6 +284,8 @@ def UpdateDeviceCharge(name, sValue):
             sValue = 1
         elif sValue == "TIMER":
             sValue = 2
+        elif sValue == "OFF":
+            sValue = 0
         else:
             Domoticz.Error("Please create an issue at github and write this error. Missing "+str(name)+" - "+str(sValue))
             sValue = -1
@@ -707,7 +594,6 @@ def WriteDebug(text):
 def onHeartbeat():
     global _plugin
     _plugin.onHeartbeat()
-
 
     # Generic helper functions
 def DumpConfigToLog():
